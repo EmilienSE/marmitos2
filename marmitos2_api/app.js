@@ -23,6 +23,6 @@ models.sequelize.sync().then(function() {
 app.use(bodyParser());
 app.use('/api/auth', authRouter);
 app.use('/api/utilisateurs', passport.authenticate('jwt', {session: false}), utilisateursRouter);
-app.use('/api/recettes', recettesRouter);
+app.use('/api/recettes', passport.authenticate('jwt', {session: false}), recettesRouter);
 
 app.listen(8080);
