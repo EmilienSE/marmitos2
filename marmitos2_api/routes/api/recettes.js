@@ -4,7 +4,7 @@ var router = express.Router();
 //Models
 var models = require("../../app/models");
 
-/* GET ALL RECETTES */
+/* GET ALL RECETTES BY UTILISATEUR ID */
 router.get('/', function(req, res, next) {
 
 	var response = [];
@@ -36,6 +36,52 @@ router.get('/', function(req, res, next) {
 			});
 		});
 	});
+});
+
+
+/* GET RECETTE BY ID */
+router.get('/:id', function(req, res, next) {
+	if(!Number.isInteger(parseInt(req.params.id))){
+		res.status(400).send({
+			error : 'L\'id parvenu n\'est pas correct.' 
+		});
+	} else {
+		models.recette.findOne({
+			where: {
+				idRecette: req.params.id 
+			}
+		}).then(recette => {
+			console.log(recette);
+			if(recette.utilisateurIdUtilisateur == req.user.idUtilisateur){
+				models.ingredient.findAll({
+					where: {
+						recetteIdRecette : recette.idRecette
+					}
+				})
+				.then(ingredients => {
+					res.send({
+						utilisateur : req.user,
+						recette : recette,
+						ingredients : ingredients
+					});
+				})
+				.catch(function(err){
+					res.status(400).send({
+						error : err
+					})
+				});
+			} else {
+				res.status(400).send({
+					error : 'La recette n\'appartient pas à l\'utilisateur.'
+				});
+			}
+		})
+		.catch(function(err){
+			res.status(400).send({
+				error : 'L\'id parvenu ne correspond à aucune recette.'
+			});
+		});
+	}
 });
 
 module.exports = router;
