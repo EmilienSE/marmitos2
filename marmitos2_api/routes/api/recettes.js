@@ -84,4 +84,66 @@ router.get('/:id', function(req, res, next) {
 	}
 });
 
+
+/* ADD RECETTE */
+router.post('/', function(req, res, next){
+	console.log(req.body);
+	if(
+		req.body.nomRecette === undefined || req.body.nomRecette === null ||
+		req.body.photoRecette === undefined || req.body.photoRecette === null ||
+		req.body.typeRecette === undefined || req.body.typeRecette === null ||
+		req.body.preparationRecette === undefined || req.body.preparationRecette === null ||
+		req.body.tempsPreparationRecette === undefined || req.body.tempsPreparationRecette === null ||
+		req.body.tempsCuissonRecette === undefined || req.body.tempsCuissonRecette === null ||
+		req.body.nombrePersonnesRecette === undefined || req.body.nombrePersonnesRecette === null
+	){
+		res.status(400).send({
+			error : 'Un champ requis est manquant.'
+		});
+	} else {
+		if(
+			typeof req.body.typeRecette == 'number' &&
+			typeof req.body.tempsCuissonRecette == 'number' &&
+			typeof req.body.tempsPreparationRecette == 'number' &&
+			typeof req.body.nombrePersonnesRecette == 'number'
+		){
+			models.recette.create({
+		  	nomRecette : req.body.nomRecette,
+		  	photoRecette : req.body.photoRecette,
+		  	typeRecette : req.body.typeRecette,
+		  	preparationRecette : req.body.preparationRecette,
+		  	tempsPreparationRecette : req.body.tempsPreparationRecette,
+		  	tempsCuissonRecette : req.body.tempsCuissonRecette,
+		  	nombrePersonnesRecette : req.body.nombrePersonnesRecette,
+		  	utilisateurIdUtilisateur : req.user.idUtilisateur
+		  }).then(function(result){
+		  	if(Array.isArray(req.body.quantiteIngredient)){
+		  		for(var i = 0; i < req.body.quantiteIngredient.length; i++){
+		  			models.ingredient.create({
+							nomIngredient : req.body.nomIngredient[i],
+							quantiteIngredient : parseInt(req.body.quantiteIngredient[i]),
+							recetteIdRecette : result.dataValues.idRecette
+						});
+		  		}
+		  	} else {
+		    	models.ingredient.create({
+						nomIngredient : req.body.nomIngredient,
+						quantiteIngredient : parseInt(req.body.quantiteIngredient),
+						recetteIdRecette : result.dataValues.idRecette
+					});
+		  	}
+		  	res.send({
+		  		recette : result
+		  	});
+		  });
+		} else {
+			res.status(400).send({
+				error : 'Un champ requis n\'est pas de la bonne forme.'
+			});
+		}
+		
+	}
+	
+});
+
 module.exports = router;
